@@ -5,13 +5,13 @@ CONFIG = {
     # - "0" hoặc "1" cho webcam
     # - Đường dẫn video: "D:/videos/traffic.mp4"
     # - Đường dẫn ảnh: "D:/images/street.jpg"
-    "source": r"/home/samer/Desktop/DT/Learn/20252/detecting_congestion/video/AN___562_Th_Khe_20251231_112424.mp4",
+    "source": r"video/AN___562_Th_Khe_20251231_112424.mp4",
     
     # Đường dẫn model YOLO (sẽ tự động tải nếu chưa có)
-    "model": "yolo11n.pt",
+    "model": "model/yolo12n.pt",
     
     # Đường dẫn lưu kết quả (để None nếu không muốn lưu)
-    "output": r"/home/samer/Desktop/DT/Learn/20252/detecting_congestion/result/AN___562_Th_Khe_20251231_112424.mp4",
+    "output": r"result/AN___562_Th_Khe_20251231_112424.mp4",
     
     # Ngưỡng confidence (0.0 - 1.0)
     "confidence": 0.5,
