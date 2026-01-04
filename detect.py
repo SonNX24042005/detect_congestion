@@ -2,6 +2,8 @@ import cv2
 import argparse
 from ultralytics import YOLO
 from config import CONFIG, VEHICLE_CLASSES, COLORS
+from draw_utils import draw_statistics
+from processors import process_image, process_video
 
 
 def load_model(model_path='yolo11n.pt'):
@@ -68,166 +70,6 @@ def detect_vehicles(model, frame, confidence=0.5, device="cuda"):
     return frame, vehicle_count
 
 
-def draw_statistics(frame, vehicle_count):
-    """
-    Vẽ bảng thống kê lên frame
-    Args:
-        frame: Frame cần vẽ
-        vehicle_count: Dict thống kê số lượng
-    Returns:
-        Frame đã được vẽ thống kê
-    """
-    # Vẽ nền cho bảng thống kê
-    overlay = frame.copy()
-    cv2.rectangle(overlay, (10, 10), (200, 160), (0, 0, 0), -1)
-    cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
-    
-    # Vẽ tiêu đề
-    cv2.putText(frame, "THONG KE:", (20, 35), 
-               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    
-    # Vẽ số lượng từng loại
-    y_offset = 60
-    for label, count in vehicle_count.items():
-        if count > 0:
-            text = f"{label}: {count}"
-            cv2.putText(frame, text, (20, y_offset), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-            y_offset += 20
-    
-    # Tổng số phương tiện
-    total = sum(vehicle_count.values())
-    cv2.putText(frame, f"Tong: {total}", (20, y_offset + 10), 
-               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-    
-    return frame
-
-
-def process_image(model, image_path, output_path=None, confidence=0.5, device="cuda"):
-    """
-    Xử lý ảnh đơn
-    Args:
-        model: Model YOLO
-        image_path: Đường dẫn ảnh đầu vào
-        output_path: Đường dẫn lưu ảnh kết quả
-        confidence: Ngưỡng confidence
-        device: Device để chạy inference (cuda/cpu)
-    """
-    print(f"Đang xử lý ảnh: {image_path}")
-    
-    # Đọc ảnh
-    frame = cv2.imread(image_path)
-    if frame is None:
-        print(f"Không thể đọc ảnh: {image_path}")
-        return
-    
-    # Nhận diện
-    frame, vehicle_count = detect_vehicles(model, frame, confidence, device)
-    frame = draw_statistics(frame, vehicle_count)
-    
-    # In thống kê
-    print("\n=== KẾT QUẢ NHẬN DIỆN ===")
-    for label, count in vehicle_count.items():
-        if count > 0:
-            print(f"  {label}: {count}")
-    print(f"  Tổng: {sum(vehicle_count.values())}")
-    
-    # Lưu hoặc hiển thị kết quả
-    if output_path:
-        cv2.imwrite(output_path, frame)
-        print(f"Đã lưu kết quả: {output_path}")
-    
-    # cv2.imshow("Nhan dien phuong tien", frame)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-
-def process_video(model, video_source, output_path=None, confidence=0.5, device="cuda"):
-    """
-    Xử lý video hoặc camera
-    Args:
-        model: Model YOLO
-        video_source: Đường dẫn video hoặc camera ID (0, 1, ...)
-        output_path: Đường dẫn lưu video kết quả
-        confidence: Ngưỡng confidence
-        device: Device để chạy inference (cuda/cpu)
-    """
-    # Mở video/camera
-    if isinstance(video_source, str) and video_source.isdigit():
-        video_source = int(video_source)
-    
-    cap = cv2.VideoCapture(video_source)
-    
-    if not cap.isOpened():
-        print(f"Không thể mở nguồn video: {video_source}")
-        return
-    
-    # Lấy thông số video
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = int(cap.get(cv2.CAP_PROP_FPS)) or 30
-    
-    print(f"Độ phân giải: {width}x{height}, FPS: {fps}")
-    
-    # Lấy tổng số frame của video
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    print(f"Tổng số frame: {total_frames}")
-    
-    # Tạo video writer nếu cần lưu
-    writer = None
-    if output_path:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-    
-    print("Bắt đầu xử lý video...")
-    frame_count = 0
-    
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        
-        # Nhận diện
-        frame, vehicle_count = detect_vehicles(model, frame, confidence, device)
-        frame = draw_statistics(frame, vehicle_count)
-        
-        # Hiển thị FPS
-        cv2.putText(frame, f"Frame: {frame_count}", (width - 150, 30),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        
-        # Hiển thị
-        # cv2.imshow("Nhan dien phuong tien - Nhan 'q' de thoat", frame)
-        
-        # Lưu frame nếu cần
-        if writer:
-            writer.write(frame)
-        
-        frame_count += 1
-        
-        # Hiển thị tiến trình
-        if total_frames > 0:
-            progress = (frame_count / total_frames) * 100
-            print(f"\rTiến trình: {frame_count}/{total_frames} ({progress:.1f}%)", end="", flush=True)
-        
-        # Xử lý phím
-        # key = cv2.waitKey(1) & 0xFF
-        # if key == ord('q'):
-        #     break
-        # elif key == ord('s'):
-        #     screenshot_path = f"screenshot_{frame_count}.jpg"
-        #     cv2.imwrite(screenshot_path, frame)
-        #     print(f"Đã lưu: {screenshot_path}")
-    
-    # Giải phóng tài nguyên
-    print()  # Xuống dòng sau progress bar
-    cap.release()
-    if writer:
-        writer.release()
-        print(f"Đã lưu video: {output_path}")
-    print(f"Hoàn thành! Đã xử lý {frame_count} frames.")
-    # cv2.destroyAllWindows()
-
-
 def main():
     parser = argparse.ArgumentParser(description='Nhận diện phương tiện giao thông với YOLO')
     
@@ -255,9 +97,9 @@ def main():
     
     # Xử lý theo loại nguồn
     if args.image:
-        process_image(model, args.source, args.output, args.confidence, args.device)
+        process_image(model, args.source, args.output, args.confidence, args.device, detect_vehicles)
     else:
-        process_video(model, args.source, args.output, args.confidence, args.device)
+        process_video(model, args.source, args.output, args.confidence, args.device, detect_vehicles)
 
 
 if __name__ == "__main__":
