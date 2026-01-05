@@ -8,7 +8,7 @@ CONFIG = {
     "source": r"video/AN___562_Th_Khe_20251231_112424.mp4",
     
     # Đường dẫn model YOLO (sẽ tự động tải nếu chưa có)
-    "model": "model/yolo12n.pt",
+    "model": "model/yolo12x.pt",
     
     # Đường dẫn lưu kết quả (để None nếu không muốn lưu)
     "output": r"result/AN___562_Th_Khe_20251231_112424.mp4",
