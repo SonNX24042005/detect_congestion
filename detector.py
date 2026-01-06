@@ -1,5 +1,6 @@
 import cv2
 from config import VEHICLE_CLASSES, COLORS
+from draw_utils import draw_bounding_box
 
 
 def detect_vehicles(model, frame, confidence=0.5, device="cuda"):
@@ -34,19 +35,10 @@ def detect_vehicles(model, frame, confidence=0.5, device="cuda"):
             color = COLORS[cls_id]
             
             # Vẽ bounding box
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-            
-            # Vẽ label với confidence
-            text = f"{label}: {conf:.2f}"
-            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
-            
-            # Vẽ nền cho text
-            cv2.rectangle(frame, (x1, y1 - text_size[1] - 10), 
-                         (x1 + text_size[0], y1), color, -1)
-            cv2.putText(frame, text, (x1, y1 - 5), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            draw_bounding_box(frame, x1, y1, x2, y2, label, conf, color)
             
             # Cập nhật thống kê
             vehicle_count[label] += 1
     
     return frame, vehicle_count
+
