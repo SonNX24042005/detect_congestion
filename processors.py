@@ -2,64 +2,7 @@ import cv2
 import numpy as np
 from collections import deque
 from draw_utils import draw_statistics
-
-
-# ==================== CẤU HÌNH PHÁT HIỆN ÙN TẮC ====================
-CONGESTION_CONFIG = {
-    # Ngưỡng số lượng phương tiện để coi là ùn tắc
-    "vehicle_count_threshold": 15,
-    
-    # Ngưỡng tỷ lệ chiếm đường (%) để coi là ùn tắc
-    "occupancy_threshold": 25.0,
-    
-    # Ngưỡng mật độ phương tiện (phương tiện/10000 pixel²)
-    "density_threshold": 0.5,
-    
-    # Ngưỡng tốc độ trung bình (pixel/frame) - dưới ngưỡng này coi là chậm
-    "speed_threshold": 5.0,
-    
-    # Số frame để tính trung bình (smoothing)
-    "smoothing_window": 10,
-    
-    # Trọng số cho các tiêu chí (tổng = 1.0)
-    "weights": {
-        "vehicle_count": 0.25,
-        "occupancy": 0.35,
-        "density": 0.20,
-        "speed": 0.20
-    },
-    
-    # Ngưỡng điểm tổng hợp để xác định mức độ ùn tắc
-    "congestion_levels": {
-        "low": 0.3,      # < 30%: Thông thoáng
-        "medium": 0.5,   # 30-50%: Đông đúc
-        "high": 0.7,     # 50-70%: Ùn tắc nhẹ
-        "severe": 0.85   # > 85%: Ùn tắc nghiêm trọng
-    },
-    
-    # ==================== CẤU HÌNH TỐI ƯU TỐC ĐỘ ====================
-    # Bật/tắt optical flow (tắt sẽ nhanh hơn nhiều)
-    "enable_optical_flow": False,
-    
-    # Chỉ phân tích ùn tắc mỗi N frame (1 = mọi frame, 3 = mỗi 3 frame)
-    "analyze_every_n_frames": 3,
-    
-    # Resize frame để tính optical flow (nhỏ hơn = nhanh hơn)
-    "optical_flow_scale": 0.25,
-    
-    # Chỉ chạy YOLO detection mỗi N frame
-    "detect_every_n_frames": 2,
-    
-    # ==================== CẤU HÌNH NÉN VIDEO ĐẦU RA ====================
-    # Tỷ lệ resize video đầu ra (1.0 = giữ nguyên, 0.5 = giảm 50%)
-    "output_scale": 0.75,
-    
-    # FPS video đầu ra (0 = giữ nguyên FPS gốc)
-    "output_fps": 0,
-    
-    # Codec video (XVID hoặc H264 cho file nhỏ hơn)
-    "video_codec": "XVID"
-}
+from config import CONGESTION_CONFIG
 
 
 class CongestionDetector:
