@@ -11,7 +11,7 @@ CONFIG = {
     "model": "model/yolo12x.pt",
     
     # Đường dẫn lưu kết quả (để None nếu không muốn lưu)
-    "output": r"result/AN___562_Th_Khe_20251231_112424.mp4",
+    "output": r"result/AN___562_Th_Khe_20251231_1124242.mp4",
     
     # Ngưỡng confidence (0.0 - 1.0)
     "confidence": 0.5,
